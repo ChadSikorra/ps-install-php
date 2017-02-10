@@ -39,6 +39,7 @@ $VC = @{
     "VC14_X64" = "https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe"
 }
 
+Write-Information "Checking for downloadable PHP versions..."
 $AllVersions = @()
 foreach ($url in @("http://windows.php.net/downloads/releases/", "http://windows.php.net/downloads/releases/archives/")) {
     $Page = Invoke-WebRequest -URI $url
@@ -68,7 +69,7 @@ if ($Version -and $Highest) {
 if (!$ToInstall) {
     throw "Unable to find an installable version of $Arch PHP $Version. Check that the version specified is correct."
 }
-$ToInstall
+
 $PhpFileName = [Uri]::new([Uri]$ToInstall.url).Segments[-1]
 $DownloadFile = ($InstallPath + '\' + $PhpFileName)
 
@@ -76,29 +77,35 @@ $VcFileName = [Uri]::new([Uri]$VC[$ToInstall.vc]).Segments[-1]
 $VcDownloadFile = ($InstallPath + '\' + $VcFileName)
 
 New-Item -ItemType Directory -Force -Path $InstallPath | Out-Null
+
+Write-Information ("Downloading PHP " + $ToInstall.version + " $Arch...")
 try {
     (New-Object System.Net.WebClient).DownloadFile($ToInstall.url, $DownloadFile)
 } catch {
     throw ("Unable to download PHP from: " + $ToInstall.url)
 }
+
+Write-Information ("Downloading " + $ToInstall.vc + " redistributable...")
 try {
     (New-Object System.Net.WebClient).DownloadFile($VC[$ToInstall.vc], $VcDownloadFile)
 } catch {
     throw ("Unable to download " + $ToInstall.vc + "  from: " + $VC[$ToInstall.vc])
 }
 
+Write-Information ("Installing " + $ToInstall.vc + " redistributable...")
 & $VcDownloadFile /q /norestart
 if(-not $?) {
     throw ("Unable to install " + $ToInstall.vc)
 }
-Remove-Item $VcDownloadFile -Force
+Remove-Item $VcDownloadFile -Force -ErrorAction SilentlyContinue | Out-Null
 
+Write-Information ("Extracting PHP " + $ToInstall.version + " $Arch to: " + $InstallPath)
 try {
     [IO.Compression.ZipFile]::ExtractToDirectory($DownloadFile, $InstallPath)
 } catch {
     throw "Unable to extract PHP from ZIP"
 }
-Remove-Item $DownloadFile -Force
+Remove-Item $DownloadFile -Force -ErrorAction SilentlyContinue | Out-Null
 
 Rename-Item "$InstallPath\php.ini-development" -NewName "php.ini" -ErrorAction Stop
 $PhpIni = "$InstallPath\php.ini"
@@ -118,3 +125,5 @@ try {
 } catch {
     Write-Warning "Unable to add PHP to path. You may have to add it manually: $InstallPath"
 }
+
+refreshenv | Out-Null
