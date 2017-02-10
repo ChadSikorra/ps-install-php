@@ -125,5 +125,3 @@ try {
 } catch {
     Write-Warning "Unable to add PHP to path. You may have to add it manually: $InstallPath"
 }
-
-cmd /c refreshenv
