@@ -69,6 +69,7 @@ if ($Version -and $Highest) {
 if (!$ToInstall) {
     throw "Unable to find an installable version of $Arch PHP $Version. Check that the version specified is correct."
 }
+$ToInstall
 
 $PhpFileName = [Uri]::new([Uri]$ToInstall.url).Segments[-1]
 $DownloadFile = ($InstallPath + '\' + $PhpFileName)
