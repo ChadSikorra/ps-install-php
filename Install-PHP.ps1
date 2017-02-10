@@ -39,7 +39,7 @@ $VC = @{
     "VC14_X64" = "https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe"
 }
 
-Write-Information "Checking for downloadable PHP versions..."
+Write-Output "Checking for downloadable PHP versions..."
 $AllVersions = @()
 foreach ($url in @("http://windows.php.net/downloads/releases/", "http://windows.php.net/downloads/releases/archives/")) {
     $Page = Invoke-WebRequest -URI $url
@@ -78,28 +78,28 @@ $VcDownloadFile = ($InstallPath + '\' + $VcFileName)
 
 New-Item -ItemType Directory -Force -Path $InstallPath | Out-Null
 
-Write-Information ("Downloading PHP " + $ToInstall.version + " $Arch...")
+Write-Output ("Downloading PHP " + $ToInstall.version + " $Arch...")
 try {
     (New-Object System.Net.WebClient).DownloadFile($ToInstall.url, $DownloadFile)
 } catch {
     throw ("Unable to download PHP from: " + $ToInstall.url)
 }
 
-Write-Information ("Downloading " + $ToInstall.vc + " redistributable...")
+Write-Output ("Downloading " + $ToInstall.vc + " redistributable...")
 try {
     (New-Object System.Net.WebClient).DownloadFile($VC[$ToInstall.vc], $VcDownloadFile)
 } catch {
     throw ("Unable to download " + $ToInstall.vc + "  from: " + $VC[$ToInstall.vc])
 }
 
-Write-Information ("Installing " + $ToInstall.vc + " redistributable...")
+Write-Output ("Installing " + $ToInstall.vc + " redistributable...")
 & $VcDownloadFile /q /norestart
 if(-not $?) {
     throw ("Unable to install " + $ToInstall.vc)
 }
 Remove-Item $VcDownloadFile -Force -ErrorAction SilentlyContinue | Out-Null
 
-Write-Information ("Extracting PHP " + $ToInstall.version + " $Arch to: " + $InstallPath)
+Write-Output ("Extracting PHP " + $ToInstall.version + " $Arch to: " + $InstallPath)
 try {
     [IO.Compression.ZipFile]::ExtractToDirectory($DownloadFile, $InstallPath)
 } catch {
