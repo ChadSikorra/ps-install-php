@@ -82,14 +82,14 @@ New-Item -ItemType Directory -Force -Path $InstallPath | Out-Null
 
 Write-Output ("Downloading PHP " + $ToInstall.version + " $Arch...")
 try {
-    (New-Object System.Net.WebClient).DownloadFile($ToInstall.url, $DownloadFile)
+    Invoke-WebRequest $ToInstall.url -OutFile $DownloadFile -ErrorAction Stop
 } catch {
     throw ("Unable to download PHP from: " + $ToInstall.url)
 }
 
 Write-Output ("Downloading " + $ToInstall.vc + " redistributable...")
 try {
-    (New-Object System.Net.WebClient).DownloadFile($VC[$ToInstall.vc], $VcDownloadFile)
+    Invoke-WebRequest $VC[$ToInstall.vc] -OutFile $VcDownloadFile -ErrorAction Stop
 } catch {
     throw ("Unable to download " + $ToInstall.vc + "  from: " + $VC[$ToInstall.vc])
 }
